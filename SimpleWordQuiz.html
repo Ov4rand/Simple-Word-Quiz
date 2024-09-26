@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: white;
+            color: black;
+        }
+        .flashcard {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .flashcard .emoji {
+            font-size: 40px; /* Large font size for emojis */
+        }
+        .word-meaning {
+            margin: 5px 0;
+            font-size: 32px; /* Large font size for WORD and MEANING */
+            font-weight: bold;
+            color: red; /* Make WORD and MEANING lines red */
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: white;
+            color: black;
+            border: 1px solid #ccc;
+        }
+        .known-section {
+            background-color: #e0ffe0;
+            border: 1px solid #8bcd8b;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .randomize-btn {
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            padding: 10px;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #eee;
+        }
+        .dark-mode .flashcard {
+            background-color: #555;
+            border-color: #999;
+        }
+        .dark-mode button {
+            background-color: #444;
+            color: #ddd;
+        }
+        .dark-mode button:hover {
+            background-color: #222;
+        }
+        .dark-mode textarea {
+            background-color: #555;
+            color: #eee;
+            border-color: #888;
+        }
+        .dark-mode .known-section {
+            background-color: #444;
+            border-color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Flashcards</h1>
+
+<!-- Dark Mode Toggle -->
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+<!-- Input Section -->
+<h2>Add Words</h2>
+<textarea id="wordList" placeholder="Enter word-meaning pairs (e.g., Apple - A fruit)"></textarea>
+<button onclick="addWords()">Add to Flashcards</button>
+
+<!-- Flashcards Section -->
+<h2>Flashcards</h2>
+<button class="randomize-btn" onclick="randomizeFlashcards()">Randomize Flashcards</button>
+<div id="flashcards"></div>
+
+<!-- Known Words Section -->
+<h2>Known Words</h2>
+<div id="knownFlashcards" class="known-section"></div>
+
+<!-- Save/Load Progress Buttons -->
+<button onclick="exportProgress()">Export Progress</button>
+<input type="file" id="importFile" accept=".json" onchange="importProgress(event)">
+<button onclick="saveProgress()">Save Progress</button>
+<button onclick="clearProgress()">Clear Progress</button>
+
+<script>
+    const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😎', '😍', '😘', '😗', '😙', '😚', '☺️', '🙂', '🤗', '🤔', '🤨', '🤓', '😏', '😒', '🙄','🤪', '😝', '🤑', '🤗', '🤭', '🫢', '🫣', '🤫', '🤔', '🫡', '🤐', '🤨', '😐', '😑', '😶', '🫥', '😶‍🌫️', '😏', '😒', '🙄', '😬', '😮‍💨', '🤥', '🫨', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '😵‍💫', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕', '🫤', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '🥹', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '💔', '❤️‍🔥', '❤️‍🩹', '❤️', '🩷', '🧡', '💛', '💚', '💙', '🩵', '💜', '🤎', '🖤', '🩶', '🤍', '💋', '💯', '💢', '💥', '💫', '💦', '💨', '🕳️', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭', '💤', '👋', '🤚', '🖐️', '✋', '🖖', '🫱', '🫲', '🫳', '🫴', '🫷', '🫸', '👌', '🤌', '🤏', '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '🫵', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '🫶', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '🫦', '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '🧔‍♂️', '🧔‍♀️', '👨‍🦰', '👨‍🦱', '👨‍🦳', '👨‍🦲', '👩', '👩‍🦰', '🧑‍🦰', '👩‍🦱', '🧑‍🦱', '👩‍🦳', '🧑‍🦳', '👩‍🦲', '🧑‍🦲', '👱‍♀️', '👱‍♂️', '🧓', '👴', '👵', '🙍', '🙍‍♂️', '🙍‍♀️', '🙎', '🙎‍♂️', '🙎‍♀️', '🙅', '🙅‍♂️', '🙅‍♀️', '🙆', '🙆‍♂️', '🙆‍♀️', '💁', '💁‍♂️', '💁‍♀️', '🙋', '🙋‍♂️', '🙋‍♀️', '🧏', '🧏‍♂️', '🧏‍♀️', '🙇', '🙇‍♂️', '🙇‍♀️', '🤦', '🤦‍♂️', '🤦‍♀️', '🤷', '🤷‍♂️', '🤷‍♀️', '🧑‍⚕️', '👨‍⚕️', '👩‍⚕️', '🧑‍🎓', '👨‍🎓', '👩‍🎓', '🧑‍🏫', '👨‍🏫', '👩‍🏫', '🧑‍⚖️', '👨‍⚖️', '👩‍⚖️', '🧑‍🌾', '👨‍🌾', '👩‍🌾', '🧑‍🍳', '👨‍🍳', '👩‍🍳', '🧑‍🔧', '👨‍🔧', '👩‍🔧', '🧑‍🏭', '👨‍🏭', '👩‍🏭', '🧑‍💼', '👨‍💼', '👩‍💼', '🧑‍🔬', '👨‍🔬', '👩‍🔬', '🧑‍💻', '👨‍💻', '👩‍💻', '🧑‍🎤', '👨‍🎤', '👩‍🎤', '🧑‍🎨', '👨‍🎨', '👩‍🎨', '🧑‍✈️', '👨‍✈️', '👩‍✈️', '🧑‍🚀', '👨‍🚀', '👩‍🚀', '🧑‍🚒', '👨‍🚒', '👩‍🚒', '👮', '👮‍♂️', '👮‍♀️', '🕵️', '🕵️‍♂️', '🕵️‍♀️', '💂', '💂‍♂️', '💂‍♀️', '🥷', '👷', '👷‍♂️', '👷‍♀️', '🫅', '🤴', '👸', '👳', '👳‍♂️', '👳‍♀️', '👲', '🧕', '🤵', '🤵‍♂️', '🤵‍♀️', '👰', '👰‍♂️', '👰‍♀️', '🤰', '🫃', '🫄', '🤱', '👩‍🍼', '👨‍🍼', '🧑‍🍼', '👼', '🎅', '🤶', '🧑‍🎄', '🦸', '🦸‍♂️', '🦸‍♀️', '🦹', '🦹‍♂️', '🦹‍♀️', '🧙', '🧙‍♂️', '🧙‍♀️', '🧚', '🧚‍♂️', '🧚‍♀️', '🧛', '🧛‍♂️', '🧛‍♀️', '🧜', '🧜‍♂️', '🧜‍♀️', '🧝', '🧝‍♂️', '🧝‍♀️', '🧞', '🧞‍♂️', '🧞‍♀️', '🧟', '🧟‍♂️', '🧟‍♀️', '🧌', '💆', '💆‍♂️', '💆‍♀️', '💇', '💇‍♂️', '💇‍♀️', '🚶', '🚶‍♂️', '🚶‍♀️', '🕺', '💃', '🕴️'];
+    const colors = ['#FF6347', '#FF4500', '#FFD700', '#32CD32', '#00CED1', '#1E90FF', '#DA70D6', '#FF69B4', '#8A2BE2', '#7FFF00'];
+
+    let flashcards = [];
+    let knownFlashcards = [];
+    let isDarkMode = false;
+
+    // Add words from the text area
+    function addWords() {
+        const input = document.getElementById("wordList").value;
+        const lines = input.split('\n');
+        lines.forEach(line => {
+            const [word, meaning] = line.split(' - ');
+            if (word && meaning) {
+                flashcards.push({
+                    word: word.trim(),
+                    meaning: meaning.trim(),
+                    known: false,
+                    wordVisible: true,
+                    meaningVisible: true,
+                    emoji: getRandomEmoji(),
+                    color: getRandomColor()
+                });
+            }
+        });
+        document.getElementById("wordList").value = '';  // Clear textarea
+        displayFlashcards();
+        saveProgress();
+    }
+
+    // Get a random emoji
+    function getRandomEmoji() {
+        return emojis[Math.floor(Math.random() * emojis.length)];
+    }
+
+    // Get a random color
+    function getRandomColor() {
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Display flashcards
+    function displayFlashcards() {
+        const flashcardContainer = document.getElementById("flashcards");
+        const knownContainer = document.getElementById("knownFlashcards");
+
+        // Clear existing flashcards
+        flashcardContainer.innerHTML = '';
+        knownContainer.innerHTML = '';
+
+        // Display non-known flashcards
+        flashcards.forEach((card, index) => {
+            if (!card.known) {
+                const cardDiv = createFlashcardDiv(card, index);
+                flashcardContainer.appendChild(cardDiv);
+            }
+        });
+
+        // Display known flashcards
+        flashcards.forEach((card, index) => {
+            if (card.known) {
+                const cardDiv = createFlashcardDiv(card, index);
+                knownContainer.appendChild(cardDiv);
+            }
+        });
+    }
+
+    // Create a flashcard div
+    function createFlashcardDiv(card, index) {
+        const cardDiv = document.createElement('div');
+        cardDiv.classList.add('flashcard');
+
+        // Add emoji
+        const emojiDiv = document.createElement('div');
+        emojiDiv.classList.add('emoji');
+        emojiDiv.style.color = card.color;
+        emojiDiv.textContent = card.emoji;
+
+        // Add word and meaning elements with toggle visibility buttons
+        cardDiv.innerHTML = `
+            ${emojiDiv.outerHTML}
+            <div id="word-${index}" class="word-meaning" style="visibility: ${card.wordVisible ? 'visible' : 'hidden'};"><strong>Word:</strong> ${card.word}</div>
+            <button onclick="toggleWordVisibility(${index})">${card.wordVisible ? 'Hide Word' : 'Show Word'}</button>
+            <div id="meaning-${index}" class="word-meaning" style="visibility: ${card.meaningVisible ? 'visible' : 'hidden'};"><strong>Meaning:</strong> ${card.meaning}</div>
+            <button onclick="toggleMeaningVisibility(${index})">${card.meaningVisible ? 'Hide Meaning' : 'Show Meaning'}</button>
+            <button onclick="toggleKnown(${index})">${card.known ? 'Bring Back' : 'Mark as Known'}</button>
+        `;
+        return cardDiv;
+    }
+
+    // Toggle visibility of the WORD line
+    function toggleWordVisibility(index) {
+        const card = flashcards[index];
+        card.wordVisible = !card.wordVisible;
+        displayFlashcards();
+    }
+
+    // Toggle visibility of the MEANING line
+    function toggleMeaningVisibility(index) {
+        const card = flashcards[index];
+        card.meaningVisible = !card.meaningVisible;
+        displayFlashcards();
+    }
+
+    // Mark flashcard as known or bring it back
+    function toggleKnown(index) {
+        flashcards[index].known = !flashcards[index].known;
+        displayFlashcards();
+        saveProgress();
+    }
+
+    // Randomize flashcards
+    function randomizeFlashcards() {
+        flashcards.sort(() => 0.5 - Math.random());
+        displayFlashcards();
+    }
+
+    // Toggle dark mode
+    function toggleDarkMode() {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    }
+
+    // Save progress in localStorage
+    function saveProgress() {
+        localStorage.setItem('flashcards', JSON.stringify(flashcards));
+    }
+
+    // Load progress from localStorage
+    function loadProgress() {
+        const storedData = localStorage.getItem('flashcards');
+        if (storedData) {
+            flashcards = JSON.parse(storedData);
+            displayFlashcards();
+        }
+    }
+
+    // Export progress to a JSON file
+    function exportProgress() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flashcards));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "flashcards.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    // Import progress from a JSON file
+    function importProgress(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            flashcards = JSON.parse(e.target.result);
+            displayFlashcards();
+            saveProgress();
+        };
+        reader.readAsText(file);
+    }
+
+    // Clear progress from localStorage and flashcards list
+    function clearProgress() {
+        localStorage.removeItem('flashcards');
+        flashcards = [];
+        knownFlashcards = [];
+        displayFlashcards();
+    }
+
+    // Load existing progress when page loads
+    window.onload = loadProgress;
+</script>
+
+</body>
+</html>
