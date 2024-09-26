@@ -1,7 +1,7 @@
 Just add your list of words and learn it with random emoji
 
 Example:
-Word - Meaning
+Word - Meaning <br>
 Word - Meaning
 
 You can also try it here:
