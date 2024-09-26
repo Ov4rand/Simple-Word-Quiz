@@ -1,4 +1,4 @@
-Just add your list of words and learn it with random emoji <br>
+Just add your list of words and learn it with random emoji on each Flashcard <br>
 
 Example: <br>
 Word - Meaning <br>
